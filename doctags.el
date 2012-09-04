@@ -48,8 +48,6 @@
 		(const :tag "JavaDoc" javadoc))
   :group 'doctags)
 
-;; (defcustom doctags-c-generator-document-after) ; list of tags classes
-
 (defun doctags-c-generator-type (tag)
   "Return a skeleton describing a C-like comment string
 documenting TAG.
@@ -78,7 +76,8 @@ This function assumes that TAG is a 'function tag."
 (defun doctags-c-generator-variable (tag)
   "Return a skeleton describing a C-like comment string
 documenting TAG.
-This function assumes that TAG is a 'type tag.")
+This function assumes that TAG is a 'type tag."
+  `(nil "//!< "))
 
 (defun doctags-c-generator-package (tag)
   "Return a skeleton describing a C-like comment string
@@ -111,35 +110,43 @@ according to `doctags-c-generator-command-style'."
   "Return the string to insert to end a comment block."
   "*/")
 
-(defun doctags-c-generator (class)
+(defvar doctags-c-generator
+  '((type . (doctags-c-generator-type nil))
+    (function . (doctags-c-generator-function nil))
+    (variable . (doctags-c-generator-variable t))
+    (package . (doctags-c-generator-package nil))
+    (code . (doctags-c-generator-code nil)))
   "The default documentation generator, handling various Doxygen
 styles for C-like languages.
 
 This generator works with five tag classes: 'type, 'function,
-'variable, 'package and 'code."
-  (cond
-   ((eq class 'type) 'doctags-c-generator-type)
-   ((eq class 'function) 'doctags-c-generator-function)
-   ((eq class 'variable) 'doctags-c-generator-variable)
-   ((eq class 'package) 'doctags-c-generator-package)
-   ((eq class 'code) 'doctags-c-generator-code)))
+'variable, 'package and 'code.")
 
-(defvar doctags-generator 'doctags-c-generator)
+(defvar doctags-generator 'doctags-c-generator
+  "Generators are alist of (CLASS . DATA) where CLASS is a tag
+class symbol and DATA is a list of the form (SKEL AFTER) with
+SKEL the symbol of a function returning the skeleton to generate
+the documentation string for a tag of class CLASS and AFTER is
+non-nil whenever the generated documentation must be inserted
+after the tag by `doctags-document-infile-current-tag'.")
 
 (defun doctags-document-infile-current-tag ()
   "Generate documentation for the current tag."
   (interactive)
-  (let ((tag (semantic-current-tag))
-	(generator doctags-generator))
-    (when (and tag (symbolp generator))
-      (let* ((class (semantic-tag-class tag))
-	     (func (funcall generator class)))
-	(if (not func)
-	    (message 
-	     (format "Generator not working with %S tags" class))
-	  (goto-char (semantic-tag-start tag))
-	  (beginning-of-line)
-	  (skeleton-insert (funcall func tag)))))))
-
+  (let ((tag (semantic-current-tag)))
+    (if tag
+	(let* ((class (semantic-tag-class tag))
+	       (data (assoc class (symbol-value doctags-generator)))
+	       (func (and data (nth 0 (cdr data))))
+	       (after (and data (nth 1 (cdr data))))
+	       (skeleton-end-newline nil))
+	  (if (not func)
+	      (error "Documentation generator not working with %S tags" class)
+	    (if after
+		(goto-char (semantic-tag-end tag))
+	      (goto-char (semantic-tag-start tag)))
+	    (skeleton-insert (funcall func tag))))
+      (error "No tag at point"))))
+  
 (provide 'doctags)
 ;;; doctags.el ends here
