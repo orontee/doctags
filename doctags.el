@@ -115,7 +115,7 @@ according to `doctags-c-generator-command-style'."
   "The default documentation generator, handling various Doxygen
 styles for C-like languages.
 
-This generator works with five tags classes: 'type, 'function,
+This generator works with five tag classes: 'type, 'function,
 'variable, 'package and 'code."
   (cond
    ((eq class 'type) 'doctags-c-generator-type)
@@ -126,16 +126,20 @@ This generator works with five tags classes: 'type, 'function,
 
 (defvar doctags-generator 'doctags-c-generator)
 
-(defun doctags-document-current-tag ()
+(defun doctags-document-infile-current-tag ()
   "Generate documentation for the current tag."
   (interactive)
   (let ((tag (semantic-current-tag))
 	(generator doctags-generator))
     (when (and tag (symbolp generator))
-      (let ((class (semantic-tag-class tag)))
-	(goto-char (semantic-tag-start tag))
-	(beginning-of-line)
-	(skeleton-insert (funcall (funcall generator class) tag))))))
+      (let* ((class (semantic-tag-class tag))
+	     (func (funcall generator class)))
+	(if (not func)
+	    (message 
+	     (format "Generator not working with %S tags" class))
+	  (goto-char (semantic-tag-start tag))
+	  (beginning-of-line)
+	  (skeleton-insert (funcall func tag)))))))
 
 (provide 'doctags)
 ;;; doctags.el ends here
