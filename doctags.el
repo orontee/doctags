@@ -77,17 +77,7 @@ This function assumes that TAG is a 'function tag."
   "Return a skeleton describing a C-like comment string
 documenting TAG.
 This function assumes that TAG is a 'type tag."
-  `(nil "//!< "))
-
-(defun doctags-c-generator-package (tag)
-  "Return a skeleton describing a C-like comment string
-documenting TAG.
-This function assumes that TAG is a 'package tag.")
-
-(defun doctags-c-generator-code (tag)
-  "Return a skeleton describing a C-like comment string
-documenting TAG.
-This function assumes that TAG is a 'code tag.")
+  `(nil " //!< "))
 
 (defun doctags-c-generator-command (name)
   "Return NAME prefixed by an escaped backslash or an at-sign
@@ -113,14 +103,12 @@ according to `doctags-c-generator-command-style'."
 (defvar doctags-c-generator
   '((type . (doctags-c-generator-type nil))
     (function . (doctags-c-generator-function nil))
-    (variable . (doctags-c-generator-variable t))
-    (package . (doctags-c-generator-package nil))
-    (code . (doctags-c-generator-code nil)))
+    (variable . (doctags-c-generator-variable t)))
   "The default documentation generator, handling various Doxygen
 styles for C-like languages.
 
-This generator works with five tag classes: 'type, 'function,
-'variable, 'package and 'code.")
+This generator works with three tag classes: 'type, 'function and
+'variable.")
 
 (defvar doctags-generator 'doctags-c-generator
   "Generators are alist of (CLASS . DATA) where CLASS is a tag
