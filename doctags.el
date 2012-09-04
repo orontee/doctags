@@ -1,4 +1,4 @@
-;;; doctags.el --- Generator of tags documentation
+;;; doctags.el --- Generation of tags documentation
 
 ;; Copyright (C) 2012  Matthias Meulien
 
@@ -31,56 +31,55 @@
   :group 'tools
   :version "24.0")
 
+(defcustom doctags-c-generator-command-style 'backslash
+  "Style of commands."
+  :type '(radio (const :tag "backslash" backslash)
+		(const :tag "at-sign" at-sign))
+  :group 'doctags)
+
+(defcustom doctags-c-generator-use-autobrief nil
+  "Whether to use the autobrief style or not."
+  :type '(boolean)
+  :group 'doctags)
+
+;; (defcustom doctags-c-generator-block-style) ; JavaDoc, Qt
+;; (defcustom doctags-c-generator-document-after) ; list of tags classes
+
 (defun doctags-c-generator-type (tag)
-  "Return a C-like documentation string for TAG assuming its
-class is 'type.")
+  "Return a skeleton describing a C-like comment string
+documenting TAG.
+This function assumes that TAG is a 'type tag.")
 
 (defun doctags-c-generator-function (tag)
-  "Return a C-like documentation string for TAG assuming its
-class is 'function."
-  (let ((docstring)
-	(template "\t/*!\n\t\\brief \n\n%s%s\t*/")
-	(args (semantic-tag-function-arguments tag))
-	(type (semantic-tag-get-attribute tag :type)))
-    (progn
-      (setq docstring
-	    (format template
-		    (apply 'concat
-			   (mapcar (lambda (arg) 
-				     (concat "\t\\param " (car arg) " \n"))
-				   args))
-		    (if (not (equal type "void")) "\t\\return \n" "")))
-      docstring)))
-
-;; (defun doctags-c-skeleton-function (tag)
-;;   "Return a C-like documentation string for TAG assuming its
-;; class is 'function."
-;;   (let ((elements (list ">" "/*!\n" 
-;; 			(doctags-c-generator-command "brief") " \n"))
-;; 	(template "\t/*!\n\t\\brief \n\n%s%s\t*/")
-;; 	(args (semantic-tag-function-arguments tag))
-;; 	(type (semantic-tag-get-attribute tag :type)))
-;;     (progn
-;;       (setq docstring
-;; 	    (format template
-;; 		    (apply 'concat
-;; 			   (mapcar (lambda (arg) 
-;; 				     (concat "\t\\param " (car arg) " \n"))
-;; 				   args))
-;; 		    (if (not (equal type "void")) "\t\\return \n" "")))
-;;       (append '(nil) elements))))
+  "Return a skeleton describing a C-like comment string
+documenting TAG.
+This function assumes that TAG is a 'function tag."
+  `(nil > "/*!" \n
+	> ,(doctags-c-generator-command "brief") " " _ \n
+	> \n
+	(nil 
+	 (,(mapcar (lambda (arg) (car arg)) (semantic-tag-function-arguments tag)) 
+	  >  ,(doctags-c-generator-command "param") " " str \n))
+	,(cond 
+	  ((not (equal (semantic-tag-get-attribute tag :type) "void"))
+	   (list 'nil '> (doctags-c-generator-command "return") " " '\n))
+	  (t ""))
+	> "*/"))
 
 (defun doctags-c-generator-variable (tag)
-  "Return a C-like documentation string for TAG assuming its
-class is 'variable.")
+  "Return a skeleton describing a C-like comment string
+documenting TAG.
+This function assumes that TAG is a 'type tag.")
 
 (defun doctags-c-generator-package (tag)
-  "Return a C-like documentation string for TAG assuming its
-class is 'package.")
+  "Return a skeleton describing a C-like comment string
+documenting TAG.
+This function assumes that TAG is a 'package tag.")
 
 (defun doctags-c-generator-code (tag)
-  "Return a C-like documentation string for TAG assuming its
-class is 'code.")
+  "Return a skeleton describing a C-like comment string
+documenting TAG.
+This function assumes that TAG is a 'code tag.")
 
 (defun doctags-c-generator-command (name)
   "Return NAME prefixed by an escaped backslash or an at-sign
@@ -101,17 +100,6 @@ styles for C-like languages."
    ((eq class 'package) 'doctags-c-generator-package)
    ((eq class 'code) 'doctags-c-generator-code)))
 
-(defcustom doctags-c-generator-command-style backslash
-  "Style of commands."
-  :type '(radio (const :tag "backslash" backslash)
-		(const :tag "at-sign" at-sign))
-  :group 'doctags)
-
-;; (defcustom doctags-c-generator-command-style) ; backslash or at-sign
-;; (defcustom doctags-c-generator-use-autobrief) ; true or false
-;; (defcustom doctags-c-generator-block-style) ; JavaDoc, Qt
-;; (defcustom doctags-c-generator-document-after) ; list of tags classes
-
 (defvar doctags-generator 'doctags-c-generator)
 
 (defun doctags-document-current-tag ()
@@ -120,11 +108,10 @@ styles for C-like languages."
   (let ((tag (semantic-current-tag))
 	(generator doctags-generator))
     (when (and tag (symbolp generator))
-      (let* ((class (semantic-tag-class tag))
-	     (skel (funcall (funcall generator class) tag)))
+      (let ((class (semantic-tag-class tag)))
 	(goto-char (semantic-tag-start tag))
 	(beginning-of-line)
-	(insert skel)))))
+	(skeleton-insert (funcall (funcall generator class) tag))))))
 
 (provide 'doctags)
 ;;; doctags.el ends here
