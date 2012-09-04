@@ -127,7 +127,7 @@ after the tag by `doctags-document-infile-current-tag'.")
 	       (data (assoc class (symbol-value doctags-generator)))
 	       (func (and data (nth 0 (cdr data))))
 	       (after (and data (nth 1 (cdr data))))
-	       (skeleton-end-newline nil))
+	       (skeleton-end-newline (not after)))
 	  (if (not func)
 	      (error "Documentation generator not working with %S tags" class)
 	    (if after
