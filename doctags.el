@@ -42,19 +42,28 @@
   :type '(boolean)
   :group 'doctags)
 
-;; (defcustom doctags-c-generator-block-style) ; JavaDoc, Qt
+(defcustom doctags-c-generator-block-style 'qt
+  "The style of comment blocks."
+  :type '(radio (const :tag "Qt" qt)
+		(const :tag "JavaDoc" javadoc))
+  :group 'doctags)
+
 ;; (defcustom doctags-c-generator-document-after) ; list of tags classes
 
 (defun doctags-c-generator-type (tag)
   "Return a skeleton describing a C-like comment string
 documenting TAG.
-This function assumes that TAG is a 'type tag.")
+This function assumes that TAG is a 'type tag."
+  `(nil > ,(doctags-c-generator-block-start) \n
+	> ,(doctags-c-generator-command "brief") " " _ \n
+	> \n
+	> ,(doctags-c-generator-block-end)))
 
 (defun doctags-c-generator-function (tag)
   "Return a skeleton describing a C-like comment string
 documenting TAG.
 This function assumes that TAG is a 'function tag."
-  `(nil > "/*!" \n
+  `(nil > ,(doctags-c-generator-block-start) \n
 	> ,(doctags-c-generator-command "brief") " " _ \n
 	> \n
 	(nil 
@@ -64,7 +73,7 @@ This function assumes that TAG is a 'function tag."
 	  ((not (equal (semantic-tag-get-attribute tag :type) "void"))
 	   (list 'nil '> (doctags-c-generator-command "return") " " '\n))
 	  (t ""))
-	> "*/"))
+	> ,(doctags-c-generator-block-end)))
 
 (defun doctags-c-generator-variable (tag)
   "Return a skeleton describing a C-like comment string
@@ -90,9 +99,24 @@ according to `doctags-c-generator-command-style'."
    ((eq doctags-c-generator-command-style 'at-sign)
     (concat "@" name))))
 
+(defun doctags-c-generator-block-start ()
+  "Return the string to insert to start a new comment block."
+  (cond
+   ((eq doctags-c-generator-block-style 'qt)
+    "/*!")
+   ((eq doctags-c-generator-block-style 'javadoc)
+    "/**")))
+
+(defun doctags-c-generator-block-end ()
+  "Return the string to insert to end a comment block."
+  "*/")
+
 (defun doctags-c-generator (class)
   "The default documentation generator, handling various Doxygen
-styles for C-like languages."
+styles for C-like languages.
+
+This generator works with five tags classes: 'type, 'function,
+'variable, 'package and 'code."
   (cond
    ((eq class 'type) 'doctags-c-generator-type)
    ((eq class 'function) 'doctags-c-generator-function)
