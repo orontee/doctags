@@ -68,7 +68,9 @@ This function assumes that TAG is a 'function tag."
 	 (,(mapcar (lambda (arg) (car arg)) (semantic-tag-function-arguments tag)) 
 	  >  ,(doctags-c-generator-command "param") " " str \n))
 	,(cond 
-	  ((not (equal (semantic-tag-get-attribute tag :type) "void"))
+	  ((and (not (equal (semantic-tag-get-attribute tag :type) "void"))
+		(not (semantic-tag-function-constructor-p tag))
+		(not (semantic-tag-function-destructor-p tag)))
 	   (list 'nil '> (doctags-c-generator-command "return") " " '\n))
 	  (t ""))
 	> ,(doctags-c-generator-block-end)))
