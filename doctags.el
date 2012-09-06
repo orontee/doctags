@@ -4,7 +4,7 @@
 
 ;; Author: Matthias Meulien <orontee@gmail.com>
 ;; Keywords: convenience, languages
-;; URL: https://gitorious.org/doctags-el
+;; URL: https://gitorious.org/doctags
 ;; Version: 0.1
 
 ;; This program is free software; you can redistribute it and/or modify
