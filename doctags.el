@@ -1,9 +1,11 @@
-;;; doctags.el --- Generation of tags documentation
+;;; doctags.el --- Generation of tags documentation in Doxygen syntax
 
 ;; Copyright (C) 2012  Matthias Meulien
 
 ;; Author: Matthias Meulien <orontee@gmail.com>
 ;; Keywords: convenience, languages
+;; URL: https://gitorious.org/doctags-el
+;; Version: 0.1
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -20,7 +22,13 @@
 
 ;;; Commentary:
 
-;; 
+;; This package provides helpers to write technical documentation of
+;; source code: Documentation skeletons are generated from Semantic
+;; tags.
+;;
+;; At the present time, the generated skeleton use Doxygen syntax for
+;; C-like languages. But it is easy to change. Documenting a tag is
+;; done by `doctags-document-current-tag'.
 
 ;;; Code:
 
@@ -41,6 +49,7 @@
   "Whether to use the autobrief style or not."
   :type '(boolean)
   :group 'doctags)
+;; WARNING Not implemented!
 
 (defcustom doctags-c-generator-block-style 'qt
   "The style of comment blocks."
@@ -118,9 +127,9 @@ class symbol and DATA is a list of the form (SKEL AFTER) with
 SKEL the symbol of a function returning the skeleton to generate
 the documentation string for a tag of class CLASS and AFTER is
 non-nil whenever the generated documentation must be inserted
-after the tag by `doctags-document-infile-current-tag'.")
+after the tag. See `doctags-document-current-tag'.")
 
-(defun doctags-document-infile-current-tag ()
+(defun doctags-document-current-tag ()
   "Generate documentation for the current tag."
   (interactive)
   (let ((tag (semantic-current-tag)))
