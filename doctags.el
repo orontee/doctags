@@ -129,6 +129,7 @@ the documentation string for a tag of class CLASS and AFTER is
 non-nil whenever the generated documentation must be inserted
 after the tag. See `doctags-document-current-tag'.")
 
+;;;###autoload
 (defun doctags-document-current-tag ()
   "Generate documentation for the current tag."
   (interactive)
